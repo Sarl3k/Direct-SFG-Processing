@@ -126,20 +126,18 @@ class Datafiles:
 
 
 class ProcessData:
-    def __init__(self, directory: str, datafiles: dict[str|list[dict]], correction_wl: float):
+    def __init__(self, datafiles: dict[str, list[dict]], correction_wl: float):
         """
         Create the ProcessData object, used to process direct vSFG data files.
-        :param directory:
-        :param datafiles:
-        :param correction_wl:
+        :param datafiles: dictionary containing lists of the datafiles to process (typically Datafiles.dict_datafiles)
+        :param correction_wl: wavelength in nm of the visible light pulse.
         """
-        self.directory = directory
         self.datafiles = datafiles
         self.w1 = correction_wl
 
     def average_frames(self) -> None:
         """
-        Average the multiple frames of a datafile.
+        Average the multiple frames of each datafiles.
         """
         for files_list in self.datafiles.values():
             for file in files_list:
@@ -162,7 +160,7 @@ class ProcessData:
 
     def subtract_bg(self) -> None:
         """
-        Subtract the background from signals
+        Subtract the background from the corresponding signal
         """
         for files_list in [self.datafiles.get('sample'), self.datafiles.get('ref')]:
             for file in files_list:
@@ -184,38 +182,39 @@ class ProcessData:
     def normalize(self) -> None:
         """
         Normalize the data by dividing the sample signal by the reference signal.
+        Also convert the SFG wavelength to the corresponding IR wavenumber.
         """
-        def convert_to_wavenumber(wavelength) -> np.ndarray:
+        def convert_to_wavenumber(wavelength: np.ndarray) -> np.ndarray:
             """
-
-            :param wavelength:
-            :return:
+            Convert the SFG wavelength to the corresponding IR wavenumber
+            :param wavelength: wavelength array
+            :return: corresponding array of wavenumbers
             """
-            return 1e7 / np.array(wavelength) - 1e7 / self.w1
+            return 1e7 / wavelength - 1e7 / self.w1
 
         for file in self.datafiles.get('sample'):
             try:
                 signal = np.array(file.get('data processed')['Intensity'])
                 ref_file = [i for i in self.datafiles.get('ref') if i.get('filename') == file.get('ref')][0]
                 ref = np.array(ref_file.get('data processed')['Intensity'])
-                wn = convert_to_wavenumber(file.get('data processed')['Wavelength'])
+                wn = convert_to_wavenumber(np.array(file.get('data processed')['Wavelength']))
             except TypeError:
                 print(f"Warning: '{file.get('filename')}' does not seem to have been averaged or background subtracted")
                 signal = np.array(file.get('data')['Intensity'])
                 ref_file = [i for i in self.datafiles.get('ref') if i.get('filename') == file.get('ref')][0]
                 ref = np.array(ref_file.get('data')['Intensity'])
-                wn = convert_to_wavenumber(file.get('data')['Wavelength'])
+                wn = convert_to_wavenumber(np.array(file.get('data')['Wavelength']))
             with np.errstate(divide='ignore'):
                 new_df = pd.DataFrame({'Wavenumber': wn, 'Intensity': signal / ref})
             file['data processed'] = new_df
 
         for file in self.datafiles.get('calibration'):
             try:
-                wn = convert_to_wavenumber(file.get('data processed')['Wavelength'])
+                wn = convert_to_wavenumber(np.array(file.get('data processed')['Wavelength']))
                 intensity = file.get('data processed')['Intensity']
             except IndexError:
                 print(f"Warning: '{file.get('filename')}' does not seem to have been averaged or background subtracted")
-                wn = convert_to_wavenumber(file.get('data')['Wavelength'])
+                wn = convert_to_wavenumber(np.array(file.get('data')['Wavelength']))
                 intensity = file.get('data')['Intensity']
             new_df = pd.DataFrame({'Wavenumber': wn, 'Intensity': intensity})
             file['data processed'] = new_df
@@ -270,9 +269,9 @@ The data was processed using '{os.path.basename(__file__)}'
         :param moving_average_window: For automatic detection only.
         :param interp_type: Type of interpolation performed, see scipy module for more information.
         """
-        for files_list in self.datafiles.values():
-            for file in files_list:
-                if manual is not None or automatic:
+        if manual is not None or automatic:
+            for files_list in self.datafiles.values():
+                for file in files_list:
                     x = np.array(file.get('data')['Wavelength'])
                     y = np.array(file.get('data')['Intensity'])
                     pts_selected = np.empty((0, 2))

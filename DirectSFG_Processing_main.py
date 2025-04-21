@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
     # Processing the data
     print('\n ---Processing the data---')
-    dat = ProcessData(input_directory, files.dict_datafiles, w1_wavelength)
+    dat = ProcessData(files.dict_datafiles, w1_wavelength)
     initprocess_time = time.time()
     dat.remove_cosmic_rays(automatic = True, manual = manual_cleaning)
     cosmicray_time = time.time()
