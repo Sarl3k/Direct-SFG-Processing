@@ -17,12 +17,12 @@ if __name__ == '__main__':
     process_clean_data = False
     cleandata_directory = "../CleanData/"
     regular_directory = "../"
-    x_lim = 1400, 2000
-    y_lim = -0.02, 0.05
+    x_lim = 2800, 3800
+    y_lim = -0.02, 0.1
     # manual_cleaning = None
     manual_cleaning: list[dict] = [
-        {'filename': 'h2o_ssp_600s_01.csv', 'range': (692.6, 693.1), 'frame': 1},
-        {'filename': 'h2o_ssp_600s_01_bg.csv', 'range': (696.6, 696.9), 'frame': 1}
+        {'filename': 'water_ssp_600s_01.csv', 'range': (624.4, 625), 'frame': 2},
+        {'filename': 'water_ssp_600s_01.csv', 'range': (635, 636), 'frame': 2},
     ]
     # *********************************************************************************************************
 
@@ -102,11 +102,11 @@ if __name__ == '__main__':
         ax1[1,2].plot(datafile.get('data processed')['Wavenumber'], datafile.get('data processed')['Intensity'],
                            label=datafile.get('filename'), alpha=0.7, linewidth=0.75)
 
-    ax1[0,0].set_title('ref raw data')
-    ax1[0,1].set_title('sample raw data')
+    ax1[0,0].set_title('Ref raw data')
+    ax1[0,1].set_title('Sample raw data')
     ax1[0,2].set_title('Calibration')
-    ax1[1,0].set_title('ref bkg data')
-    ax1[1,1].set_title('sample bkg data')
+    ax1[1,0].set_title('Background data')
+    # ax1[1,1].set_title('sample bkg data')
     ax1[1,2].set_title('Processed calibration')
     for ax in ax1.flat:
         ax.legend(fontsize=8)
@@ -121,7 +121,7 @@ if __name__ == '__main__':
     ax_2.set_xlabel(r"Frequency (cm$^{-1}$)")
     ax_2.set_ylabel("Intensity (a.u.)")
     for sample in dat.datafiles.get('sample'):
-        label = sample.get('sample') # + ' ' + sample.get('polarization')
+        label = sample.get('sample') + ' ' + sample.get('polarization') + ' ' + sample.get('index')
         ax_2.plot(sample.get('data processed')['Wavenumber'], sample.get('data processed')['Intensity'],
                   label=label, alpha=0.6)
         ax_2.set_xlim(x_lim)

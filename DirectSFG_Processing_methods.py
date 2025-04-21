@@ -13,7 +13,7 @@ class Datafiles:
             list_datafiles: list[str],
             ref: str,
             calibration_filename: str = 'polystyrene',
-            naming_pattern: str = r"^(\w+)(?:_\w+)*_([sp]{3})(?:_\w+)*(_+\d+s)(?:_\w+)*_([0-9]{2}|[A-Za-z]{1})(?:_\w+)*\.csv$"
+            naming_pattern: str = r"^([^_]+)(?:_\w+)*_([sp]{3})(?:_\w+)*_(\d+)s(?:_\w+)*_([0-9]{2}|[A-Za-z]{1})(?:_\w+)*\.csv$"
     ):
         """
         Creation of the DataFiles object, used for sorting and extracting information from indicated files.
@@ -24,7 +24,7 @@ class Datafiles:
         :param naming_pattern: pattern in which your files are named.
         Default naming convention is 'sample_pol_#s_##.csv'. If separated by underscores, additional words can
         be included anywhere EXCEPT before the sample (so not at the very beginning of the filename). Acquisition time
-        (the _#s_) should be in seconds. The indexing of your filenames (the ##) must be two digits (e.g. 01, 02, ...)
+        (the _#s_) should be in seconds. The indexing of your filenames (the ##) must be two digits (e.g. 01, 02, ...) or a single letter.
         """
         self.ref: str = ref
         self.directory: str = directory
@@ -32,12 +32,14 @@ class Datafiles:
         self.dict_datafiles = {'sample': [], 'ref': [], 'bg': [], 'calibration': []}
         self.extract_datafile_info(list_datafiles, naming_pattern, calibration_filename)
         self.sort_datafiles()
+        for key, value in self.dict_datafiles.items():
+            print(key, len(value))
 
     def extract_datafile_info(self, datafiles: list[str], naming_pattern: str, calibration: str) -> None:
         """
         From the name of a datafile, this method extract the data and information corresponding to the file.
         :param datafiles: list containing the name of all the files you want to process
-        :param naming_pattern: pattern in which your files need to be named, see module re for more information
+        :param naming_pattern: pattern in which your files need to be named. see module re, and re.match() for more information
         :param calibration: name of the calibration you are using
         """
         for datafile in datafiles:
@@ -63,9 +65,10 @@ class Datafiles:
                 }
             except ValueError:
                 if calibration in datafile:
-                    datafile_info = {'filename': datafile, 'data type': 'calibration'}
+                    datafile_info: dict = {'filename': datafile, 'data type': 'calibration'}
                 else:
                     raise ValueError(f'File name for {datafile} does not match the naming pattern')
+            print(datafile_info)
             datafile_info['data'] = self.extract_data(datafile_info.get('filename'))
             self.list_datafiles_dict.append(datafile_info)
 
@@ -93,7 +96,7 @@ class Datafiles:
                 if len(matching_bg) == 1:
                     datafile['bg match'] = matching_bg[0].get('filename')
                 else:
-                    raise ValueError(f'Could not select one and only one background match for {datafile}.'
+                    raise Exception(f'Could not select one and only one background match for {datafile.get('filename')}.'
                                      f' {len(matching_bg)} match found.')
 
     def match_sample_to_ref(self, ref_used: int = 1) -> None:
