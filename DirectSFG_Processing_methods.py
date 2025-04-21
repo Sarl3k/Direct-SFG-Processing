@@ -114,7 +114,7 @@ class Datafiles:
         """
         Reads a datafile and stores the corresponding data in a pandas dataframe.
         :param filename: name of the file
-        :param delimiter: delimiter
+        :param delimiter: delimiter character
         :return: pandas dataframe containing the data from the datafile
         """
         return pd.read_csv(self.directory + filename, delimiter=delimiter, index_col=False)
@@ -260,6 +260,7 @@ The data was processed using '{os.path.basename(__file__)}'
                            ) -> None:
         """
         Remove peaks corresponding to cosmic (gamma) rays from the signal. Both automatic and manual options are possible.
+        The automatic cleaning algorithm first comes from: https://doi.org/10.1016/j.aca.2024.342312
         After the data points corresponding to cosmic rays are removed, new points are created by linear interpolation.
         :param automatic: Set to 'True' if you want rays to be flagged automatically.
         :param manual: Enter each peaks you would like to clean manually as a separate dictionary with the filename, frame, and wavelength range at which the peak occurs.
@@ -329,8 +330,3 @@ The data was processed using '{os.path.basename(__file__)}'
                     file['data processed'] = new_df
                     if len(pts_selected) > 0:
                         file['cleaned points'] = pts_selected
-                    # print(file)
-
-
-if __name__ == '__main__':
-    print()
