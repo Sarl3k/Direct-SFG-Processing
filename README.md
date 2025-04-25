@@ -23,22 +23,35 @@ The included processing steps are:
 An optional pre-processing of the data may be performed to remove data points corrupted by cosmic (gamma) rays hitting the CCD detector during acquisition.
 For more details on cleaning cosmic rays, [see the dedicated section](Cosmic-ray-cleaning).
 
-3. Averaging multiple frames\
+2. Averaging multiple frames\
 The intensity is averaged over the multiple frames of each data file.
 
-5. Background subtraction\
+3. Background subtraction\
 The background intensity is subtracted from the signal intensity.
 
-7. Normalization\
+4. Normalization\
 The sample intensity is normalized using the reference intensity. This step also converts from the detected SFG wavelength (nm) to the corresponding IR resonant frequency (cm<sup>-1</sup>).
 
 ### 3. Plotting
 
+After the data has been processed, it is plotted using `matplotlib.pyplot`.
+
+First, the raw data is plotted based on its type as shown here:\
+![Example Image](example%20output%201.png)\
+Note the red `x`'s, they indicate data points that have been flagged as cosmic rays and will get removed.
+
+Finally, the processed data is plotted. Samples are both plotted individually, and together.
+
 ## File formatting and naming convention
+
+Documentation not yet implemented, see the python files.
 
 ## Cosmic ray cleaning
 
+Documentation not yet implemented, see the python files.\
+Additionally, I would like to indicate that the main cleaning algorithm originally came from [Nicolas Coca-Lopez, _Analytica Chimica Acta_ **1295**, 342312 (2024).](https://doi.org/10.1016/j.aca.2024.342312)
+
 ## Future changes
 List of features to be added or modified in the current code. Feel free to make a request or implement those changes yourself.
-- [ ] Option to only keep highest aquisition time for reference used for normalization.
-- [ ] Make it easier to only removed cosmic rays from data files (without having to process everything).
+- [ ] Option to only consider the highest acquisition time before selecting the reference file used for normalization.
+- [x] Make it easier to only removed cosmic rays from data files (without having to process everything).

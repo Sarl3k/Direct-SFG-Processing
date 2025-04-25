@@ -96,8 +96,9 @@ class Datafiles:
                 if len(matching_bg) == 1:
                     datafile['bg match'] = matching_bg[0].get('filename')
                 else:
-                    raise Exception(f'Could not select one and only one background match for {datafile.get('filename')}.'
-                                     f' {len(matching_bg)} match found.')
+                    raise Exception(
+                        f'Could not select one and only one background match for {datafile.get('filename')}.'
+                        f' {len(matching_bg)} match found.')
 
     def match_sample_to_ref(self, ref_used: int = 1) -> None:
         """
@@ -120,11 +121,6 @@ class Datafiles:
         return pd.read_csv(self.directory + filename, delimiter=delimiter, index_col=False)
 
 
-
-
-
-
-
 class ProcessData:
     def __init__(self, datafiles: dict[str, list[dict]], correction_wl: float):
         """
@@ -143,20 +139,15 @@ class ProcessData:
             for file in files_list:
                 try:
                     df = file.get('data processed')
-                    intensity = np.array(df['Intensity'])
-                    intensity = np.reshape(intensity, (int(df['Frame'].max()), -1))
-                    mean_intensity = np.mean(intensity, axis=0)
-                    wavelength = np.array(df['Wavelength'])[:len(mean_intensity)]
                 except TypeError:
                     df = file.get('data')
-                    intensity = np.array(df['Intensity'])
-                    intensity = np.reshape(intensity, (int(df['Frame'].max()), -1))
-                    mean_intensity = np.mean(intensity, axis=0)
-                    wavelength = np.array(df['Wavelength'])[:len(mean_intensity)]
+                intensity = np.array(df['Intensity'])
+                intensity = np.reshape(intensity, (int(df['Frame'].max()), -1))
+                mean_intensity = np.mean(intensity, axis=0)
+                wavelength = np.array(df['Wavelength'])[:len(mean_intensity)]
                 new_df = pd.DataFrame({'Wavelength': wavelength,
                                        'Intensity': mean_intensity})
                 file['data processed'] = new_df
-
 
     def subtract_bg(self) -> None:
         """
@@ -178,12 +169,12 @@ class ProcessData:
                 new_df = pd.DataFrame({'Wavelength': wl, 'Intensity': signal - bg})
                 file['data processed'] = new_df
 
-
     def normalize(self) -> None:
         """
         Normalize the data by dividing the sample signal by the reference signal.
         Also convert the SFG wavelength to the corresponding IR wavenumber.
         """
+
         def convert_to_wavenumber(wavelength: np.ndarray) -> np.ndarray:
             """
             Convert the SFG wavelength to the corresponding IR wavenumber
@@ -219,18 +210,18 @@ class ProcessData:
             new_df = pd.DataFrame({'Wavenumber': wn, 'Intensity': intensity})
             file['data processed'] = new_df
 
-
-    def save_processed_data(self) -> None:
+    def save_processed_data(self, directory: str, script_name: str) -> None:
         """
         Save the processed data as csv files and include informative text files.
         """
-        print("Exporting processed data")
+        print("\n Exporting processed data")
         for sample in self.datafiles.get('sample'):
-            os.makedirs("../ProcessingOutput/ProcessedData/", exist_ok=True)
-            os.makedirs("../ProcessingOutput/TextFiles/", exist_ok=True)
+            os.makedirs(directory + "/ProcessedData/", exist_ok=True)
+            os.makedirs(directory + "/TextFiles/", exist_ok=True)
             df = sample.get('data')
-            df.to_csv(f'../ProcessingOutput/ProcessedData/processed_{sample.get('filename')}', index=False)
-            with open(f"../ProcessingOutput/TextFiles/INFO-processed_{sample.get('filename').replace('.csv', '.txt')}", "w") as txt:
+            df.to_csv(directory + f'/ProcessedData/processed_{sample.get('filename')}', index=False)
+            with open(directory + f"/TextFiles/INFO-processed_{sample.get('filename').replace('.csv', '.txt')}",
+                      "w") as txt:
                 txt.write(
                     f"""
 This text file contains the information used to obtain 'processed_{sample.get('filename')}' from its corresponding raw data file.
@@ -242,11 +233,10 @@ Normalized using: {sample.get('ref')}
 Calibration file used: 
 calibration set to {self.w1} nm
 -----
-The data was processed using '{os.path.basename(__file__)}'
+The data was processed using '{script_name}' and '{os.path.basename(__file__)}'
             """
                 )
         print("Exportation (probably) successful ;)")
-
 
     def remove_cosmic_rays(self,
                            automatic: bool = True,
@@ -255,7 +245,7 @@ The data was processed using '{os.path.basename(__file__)}'
                            rel_height: float = 0.5,
                            max_width: float = 3,
                            moving_average_window: int = 20,
-                           interp_type: str ='linear'
+                           interp_type: str = 'linear'
                            ) -> None:
         """
         Remove peaks corresponding to cosmic (gamma) rays from the signal. Both automatic and manual options are possible.
@@ -310,9 +300,9 @@ The data was processed using '{os.path.basename(__file__)}'
                         for peak in manual:
                             if peak.get('filename') == file.get('filename'):
                                 start_diff = np.abs(x - peak.get('range')[0])
-                                start_idx = np.where(start_diff == np.min(start_diff))[0][int(peak.get('frame')-1)]
+                                start_idx = np.where(start_diff == np.min(start_diff))[0][int(peak.get('frame') - 1)]
                                 end_diff = np.abs(x - peak.get('range')[1])
-                                end_idx = np.where(end_diff == np.min(end_diff))[0][int(peak.get('frame')-1)]
+                                end_idx = np.where(end_diff == np.min(end_diff))[0][int(peak.get('frame') - 1)]
                                 for i in range(start_idx, end_idx + 1):
                                     pts_selected = np.vstack((pts_selected, [x[i], y[i]]))
                                     window = np.concatenate((np.arange(0, start_idx), np.arange(end_idx + 1, len(x))))
@@ -322,7 +312,6 @@ The data was processed using '{os.path.basename(__file__)}'
                                             fill_value="extrapolate"
                                         )
                                         y_out[i] = interpolator(x[i])
-
 
                     print(f'{len(pts_selected)} ray points cleaned')
                     new_df = pd.DataFrame({'Frame': file.get('data')['Frame'], 'Wavelength': x, 'Intensity': y_out})
