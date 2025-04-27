@@ -21,7 +21,7 @@ Finally, each signal file is matched with a background file, and each sample mat
 The included processing steps are:
 1. Data cleaning _(optional)_\
 An optional pre-processing of the data may be performed to remove data points corrupted by cosmic (gamma) rays hitting the CCD detector during acquisition.
-For more details on cleaning cosmic rays, [see the dedicated section](cosmic-ray-cleaning).
+For more details on cleaning cosmic rays, [see the dedicated section](#cosmic-ray-cleaning).
 
 2. Averaging multiple frames\
 The intensity is averaged over the multiple frames of each data file.
