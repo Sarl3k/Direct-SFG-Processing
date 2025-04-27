@@ -10,7 +10,7 @@ Python code used to process raw data files for vibrational sum frequency generat
 ### 1. Collecting and sorting data files[^1]
 [^1]: This step is performed via the `Datafiles` object and corresponding methods.
 
-Data files are automatically collected. All `.csv` files in a specified directory are grabbed and must fit [a specified naming convention](#File-formatting-and-naming-convention).
+Data files are automatically collected. All `.csv` files in a specified directory are grabbed and must fit [a specified naming convention](#file-formatting-and-naming-convention).
 
 From the file name, information about the measurement is extracted and stored into dictionaries. The information extracted currently include: the sample name, polarization combination, acquisition time in seconds, the file index, the type of data (i.e. reference, sample, background, calibration), and finally the data.
 
@@ -21,7 +21,7 @@ Finally, each signal file is matched with a background file, and each sample mat
 The included processing steps are:
 1. Data cleaning _(optional)_\
 An optional pre-processing of the data may be performed to remove data points corrupted by cosmic (gamma) rays hitting the CCD detector during acquisition.
-For more details on cleaning cosmic rays, [see the dedicated section](Cosmic-ray-cleaning).
+For more details on cleaning cosmic rays, [see the dedicated section](cosmic-ray-cleaning).
 
 2. Averaging multiple frames\
 The intensity is averaged over the multiple frames of each data file.
