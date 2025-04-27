@@ -56,4 +56,4 @@ List of features to be added or modified in the current code. Feel free to make 
 - [ ] Option to only consider the highest acquisition time before selecting the reference file used for normalization.
 - [ ] For files that do not match the naming pattern, simply ignore them instead of exiting.
 - [ ] Future project: automatic naming pattern generator.
-- [x] Make it easier to only removed cosmic rays from data files (without having to process everything).
+- [x] Make it easier to only remove cosmic rays from data files (without having to process everything).
