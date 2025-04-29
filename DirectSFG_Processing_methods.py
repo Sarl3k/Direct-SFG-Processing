@@ -122,14 +122,12 @@ class Datafiles:
 
 
 class ProcessData:
-    def __init__(self, datafiles: dict[str, list[dict]], correction_wl: float):
+    def __init__(self, datafiles: dict[str, list[dict]]):
         """
         Create the ProcessData object, used to process direct vSFG data files.
         :param datafiles: dictionary containing lists of the datafiles to process (typically Datafiles.dict_datafiles)
-        :param correction_wl: wavelength in nm of the visible light pulse.
         """
         self.datafiles = datafiles
-        self.w1 = correction_wl
 
     def average_frames(self) -> None:
         """
@@ -169,48 +167,48 @@ class ProcessData:
                 new_df = pd.DataFrame({'Wavelength': wl, 'Intensity': signal - bg})
                 file['data processed'] = new_df
 
-    def normalize(self) -> None:
+    def normalize(self, w1: float) -> None:
         """
         Normalize the data by dividing the sample signal by the reference signal.
         Also convert the SFG wavelength to the corresponding IR wavenumber.
         """
 
-        def convert_to_wavenumber(wavelength: np.ndarray) -> np.ndarray:
+        def convert_to_wavenumber(wavelength: np.ndarray, w1: float) -> np.ndarray:
             """
             Convert the SFG wavelength to the corresponding IR wavenumber
             :param wavelength: wavelength array
             :return: corresponding array of wavenumbers
             """
-            return 1e7 / wavelength - 1e7 / self.w1
+            return 1e7 / wavelength - 1e7 / w1
 
         for file in self.datafiles.get('sample'):
             try:
                 signal = np.array(file.get('data processed')['Intensity'])
                 ref_file = [i for i in self.datafiles.get('ref') if i.get('filename') == file.get('ref')][0]
                 ref = np.array(ref_file.get('data processed')['Intensity'])
-                wn = convert_to_wavenumber(np.array(file.get('data processed')['Wavelength']))
+                wn = convert_to_wavenumber(np.array(file.get('data processed')['Wavelength']), w1)
             except TypeError:
                 print(f"Warning: '{file.get('filename')}' does not seem to have been averaged or background subtracted")
                 signal = np.array(file.get('data')['Intensity'])
                 ref_file = [i for i in self.datafiles.get('ref') if i.get('filename') == file.get('ref')][0]
                 ref = np.array(ref_file.get('data')['Intensity'])
-                wn = convert_to_wavenumber(np.array(file.get('data')['Wavelength']))
+                wn = convert_to_wavenumber(np.array(file.get('data')['Wavelength']), w1)
             with np.errstate(divide='ignore'):
                 new_df = pd.DataFrame({'Wavenumber': wn, 'Intensity': signal / ref})
             file['data processed'] = new_df
 
         for file in self.datafiles.get('calibration'):
             try:
-                wn = convert_to_wavenumber(np.array(file.get('data processed')['Wavelength']))
+                wn = convert_to_wavenumber(np.array(file.get('data processed')['Wavelength']), w1)
                 intensity = file.get('data processed')['Intensity']
             except IndexError:
                 print(f"Warning: '{file.get('filename')}' does not seem to have been averaged or background subtracted")
-                wn = convert_to_wavenumber(np.array(file.get('data')['Wavelength']))
+                wn = convert_to_wavenumber(np.array(file.get('data')['Wavelength']), w1)
                 intensity = file.get('data')['Intensity']
             new_df = pd.DataFrame({'Wavenumber': wn, 'Intensity': intensity})
             file['data processed'] = new_df
 
-    def save_processed_data(self, directory: str, script_name: str) -> None:
+    def save_processed_data(self, directory: str, script_name: str, w1: float) -> None:
         """
         Save the processed data as csv files and include informative text files.
         """
@@ -231,7 +229,7 @@ Background file used: {sample.get('bg match')}
 Normalized using: {sample.get('ref')}
 -----
 Calibration file used: 
-calibration set to {self.w1} nm
+calibration set to {w1} nm
 -----
 The data was processed using '{script_name}' and '{os.path.basename(__file__)}'
             """
@@ -268,7 +266,7 @@ The data was processed using '{script_name}' and '{os.path.basename(__file__)}'
                     y_out = y.copy()
 
                     if automatic:
-                        print(f'cleaning {file.get('filename')}')
+                        # print(f'cleaning {file.get('filename')}')
                         # Detect peaks based on prominence
                         peaks, _ = find_peaks(y, prominence=min_prominence)
                         # Create an array to flag spikes (1 = spike, 0 = normal)
@@ -313,7 +311,7 @@ The data was processed using '{script_name}' and '{os.path.basename(__file__)}'
                                         )
                                         y_out[i] = interpolator(x[i])
 
-                    print(f'{len(pts_selected)} ray points cleaned')
+                    print(f'{file.get('filename')}: {len(pts_selected)} ray points cleaned')
                     new_df = pd.DataFrame({'Frame': file.get('data')['Frame'], 'Wavelength': x, 'Intensity': y_out})
                     file['data processed'] = new_df
                     if len(pts_selected) > 0:

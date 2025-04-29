@@ -50,7 +50,7 @@ def main(
 
     # Processing the data
     print('\n ---Processing the data---')
-    dat = ProcessData(files.dict_datafiles, w1_wavelength)
+    dat = ProcessData(files.dict_datafiles)
     initprocess_time = time.time()
     dat.remove_cosmic_rays(automatic=True, manual=manual_cleaning)
     cosmicray_time = time.time()
@@ -58,12 +58,12 @@ def main(
     average_time = time.time()
     dat.subtract_bg()
     subtractbg_time = time.time()
-    dat.normalize()
+    dat.normalize(w1_wavelength)
     normalize_time = time.time()
 
     # if true, saves the processed data
     if export:
-        dat.save_processed_data(directory='processed_data', script_name=os.path.basename(__file__))
+        dat.save_processed_data(directory='processed_data', script_name=os.path.basename(__file__), w1=w1_wavelength)
 
     print('\n --- Plotting ---')
     # Plotting raw data
