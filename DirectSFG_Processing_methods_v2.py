@@ -173,7 +173,8 @@ def sort_files(files: list[File]) -> tuple[list[File], list[File], list[File], l
     return sample_sig, sample_bg, ref_sig, ref_bg, calibration
 
 
-def subtract_bg(signals: list[File], bgs: list[File]) -> None:
+def subtract_bg(signals: list[File], bgs: list[File]) -> list[File]:
+    bg_subtracted: list[File] = []
     for sig in signals:
         # find matching bg
         matching_bg = [bg for bg in bgs if (
@@ -199,6 +200,8 @@ def subtract_bg(signals: list[File], bgs: list[File]) -> None:
         sig_int = np.array(sig.processed_data['Intensity'])
         bg_int = np.array(matching_bg[0].processed_data['Intensity'])
         sig.processed_data['Intensity'] = sig_int - bg_int
+        bg_subtracted.append(sig)
+    return bg_subtracted
 
 
 def normalize(samples: list[File], ref: File) -> None:
